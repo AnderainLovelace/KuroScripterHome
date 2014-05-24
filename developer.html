@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="favicon.png">
+
+    <title>KuroScripter Developer Manual</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="bootstrap.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="justified-nav.css" rel="stylesheet">
+    <!-- Just for debugging purposes. Don't actually copy this line! -->
+    <!--[if lt IE 9]><script src="../../docs-assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.0/html5shiv.min.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="masthead">
+        <ul class="nav nav-justified">
+          <li><a href="index.html">Home</a></li>
+          <li class="active"><a href="">Developer</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div> <!-- /container -->
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <div class="container">
+        <h1>Developer Manual</h1>
+        <p><br />KuroScripter开发者使用简述</p>
+      </div>
+    </div>
+    <div class="container">
+      <div class="container">
+        <h1>前期准备</h1>
+        <p>
+          建议使用Win32版的KuroScripter进行移植、开发的测试——使用Nspire的模拟器理论上也是可以的。<br />
+          你可以点击<a href="files/krs_win32.zip">这里</a>进行下载。<hr />
+          下载完成后请解压到任意位置。如下图。文件夹内应包含krs文件夹。
+          <p><img src="images/dm0.jpg" /></p>
+        </p>
+        <hr />
+        <h1>全局配置</h1>
+        <p>
+          krs/中的HZK12.hzk是点阵字库（12x12），config.krs为全局配置文件。escape.jpg什么用途自己猜测。<br />
+          可以任何文本编辑器对krs拓展名的脚本进行编辑（本文使用notepad++，使用了自定义的高亮）。<br />
+          首先配置krs/config.krs这一全局配置文件。
+          <p><img src="images/dm1.jpg" /></p>
+          以#（半角井号）开头的一行在脚本中被认为是注释，不进行解析。<br />
+          全局配置中若使用debug命令，则打开debug模式，反之为release模式。
+          <blockquote>
+            debug模式从krs/media下读取资源，release模式从krs/game.krp包中读取资源。<br />
+            本篇默认使用debug模式。（即开发过程中我们的所有素材都是放置在krs/media中的。）
+          </blockquote>
+          全局配置中若使用fps命令，则将后面的数值指定为fps。
+          <blockquote>
+            若不指定fps或者指定fps为0，则使用默认fps=15；
+          </blockquote>
+          <strong>另注，所有krs脚本都必须以!（半角感叹号）结束。</strong>
+        </p>
+        <h1>游戏配置</h1>
+        <p>
+          在开始编写脚本之前，我们需要选取游戏的通用界面素材。<br />
+          首先是对话框message.bmp与message_name.bmp。<br />
+          <p><img src="images/dm2.jpg" /></p>
+          message.bmp为对话框主体，message_name.bmp为显示名称使用。<br />
+          <blockquote>
+            kuroScripter中使用RGB(255,0,255)为透明色，填充为该颜色的位置将被绘制为透明。<br />
+            （对话框的边缘效果透明就是这么做的。）
+          </blockquote>
+          素材选取完成后需要对对话框的位置、文字显示位置进行配置。<br />
+          打开游戏配置文件krs/media/config.krs<strong>（注意与全局配置不是同一个文件）</strong>。<br />
+          <p><img src="images/dm3.jpg" /></p>
+          文本框为紧挨屏幕底部，姓名框紧挨文本框上部。<br />
+          textX与textY为文本框内显示的字符的默认起始坐标（相对屏幕的绝对坐标）。<br />
+          nameX为姓名框偏离屏幕左边的绝对坐标。<br />
+          lineMax为文本框内一行最大显示的文字数量。<br />
+          另注，<strong>文本框只显示全角字符，半角字符将被转为全角字符</strong>。
+          <hr />
+          还需关心的素材就是标题画面krs/media/title.jpg，<br />
+          保存与读取画面的背景krs/media/back_save.jpg，krs/media/back_load.jpg，<br />
+          选择框select.bmp。
+          <p><img src="images/dm5.jpg" /></p>
+          所有上述素材配置完成后，就可以开始下一步的脚本编写了。
+        </p>
+        <hr />
+        <h1>脚本编写</h1>
+        <hr />
+        <h2>对话脚本</h2>
+        <p>
+          建立krs/media/main.krs。
+          <blockquote>
+            kuroScripter开始新游戏时自动读取main.krs脚本。<br />
+          </blockquote>
+          某行命令如果以全角字符开始，则认为是一句需要显示的对话。<br />
+          编写脚本如下图。<strong>一定要记得写脚本结束符“!”。</strong>
+          <p><img src="images/dm4.jpg" /></p>
+          编写完后运行KuroScripter进行测试，开始新游戏，执行效果如图。
+          <p><img src="images/dm6.jpg" /></p>
+          如果想要设定说话人名称。请使用n命令，后面跟说话人名称。比如
+          <blockquote>
+            n 死者
+          </blockquote>
+          使用n ~可以消去说话人姓名。
+          <blockquote>
+            n ~
+          </blockquote>
+        </p>
+        <hr />
+        <h2>背景脚本</h2>
+        <p>
+          如果想要显示背景，可以使用bg命令，后跟文件名（文件名中可以包含路径）。
+          <blockquote>
+            bg bg/000.jpg
+          </blockquote>
+          使用bg ~可以消去背景。
+          <blockquote>
+            bg ~
+          </blockquote>
+        </p>
+        <hr />
+        <h2>立绘脚本</h2>
+        <p>
+          使用cr命令可以创建一个立绘。
+          <blockquote>
+            cr 0 lihui/ayako000.bmp
+          </blockquote>
+          cr命令后跟一个整数和一个文件名。整数为立绘标号（范围0-8）。<br />
+          不同立绘标号的立绘没有互相影响。<br />
+          使用cr x ~可以消去指定标号的立绘。
+          <blockquote>
+            cr 0 ~
+          </blockquote>
+          使用cr，将会使立绘的底端与屏幕底端对齐。但横坐标没有变化。
+          <p><img src="images/dm7.jpg" /></p>
+          <hr />
+          使用mr命令移动一个立绘的中心位置到屏幕的百分比位置。<br />
+          比如
+          <blockquote>
+            mr 0 0.5
+          </blockquote>
+          会将标号为0的立绘，以立绘的中心轴为基准，水平移动到屏幕的二分之一处。
+          <p><img src="images/dm8.jpg" /></p>
+          <hr />
+          使用mrx与mry将立绘移动到某具体x，y坐标上。<br />
+          比如
+          <blockquote>
+            mrx 0 23<br />
+            mry 0 56
+          </blockquote>
+          将立绘标号为0的立绘移动到(23，56)像素的位置。
+          <hr />
+          使用dar命令，清除所有立绘。
+          <blockquote>
+            dar
+          </blockquote>
+        </p>
+        <hr />
+        <h2>跳转控制脚本</h2>
+        <p>
+          以:(半角冒号)开头的一个标识符将被认为是标号。
+          <blockquote>
+            :拒绝一起去
+          </blockquote>
+          使用go命令可以跳转到指定标号。
+          <blockquote>
+            go 拒绝一起去
+          </blockquote>
+          <hr />
+          使用si和sl命令进行选项的选择。<br />
+          si用于添加选项，sl用于执行选择。
+          <blockquote>
+            si 一起去<br />
+            si 拒绝一起<br />
+            si 再等等<br />
+            sl
+          </blockquote>
+          选择的结果将被保存在0号变量中（保存的结果以0开始，上述例子中选择“一起去”则会保存0，选择“拒绝一起”则会保存1……）。
+          <hr />
+          使用if命令来对变量进行判断并跳转
+          <blockquote>
+            if 《操作数》 《符号》 《操作数》 《语句标号》
+          </blockquote>
+          其中，操作数可以是变量或者整数。变量的写法为：$《变量序号》，比如<br />
+          <blockquote>
+            $0 # 零号变量
+          </blockquote>
+          操作符可以而为eq/lt/le
+          <blockquote>
+            eq #=> 相等<br />
+            lt #=> 小于<br />
+            le #=> 小于等于
+          </blockquote>
+          例子：
+          <blockquote>
+            if $0 eq 1 选择拒绝一起
+          </blockquote>
+          当0号变量为1时跳转到标签“选择拒绝一起”。
+          <hr />
+          使用switch命令可以中断此脚本，转而执行另一个脚本。
+          <blockquote>
+            switch ending0.krs
+          </blockquote>
+          <hr />
+          一个单独的脚本结束符（!）可以终止当前脚本的执行。
+          <hr />
+          <strong>欲查看更多脚本使用的实例，请参考demo的内容。</strong>
+        </p>
+        <hr />
+        <h1>打包处理</h1>
+        使用任何可以使用的压缩文件工具将media下的文件打包成tar格式（不要把media文件夹本身也打包进去了），并更改为game.krp，放置在krs下。<br />
+        再在全局配置文件中关闭debug模式就可以单独执行game.krp包中的内容了。如果需要在nspire上使用，请记得加上一个tns后缀再传入nspire。
+        <hr />
+      </div>
+      <footer>
+        <div align="center">
+          <p>KuroScripter - Project maintained by Hikari no Uiharu | 初春静流</p>
+          <p><image src="images/uiharu_no_desc.png" /></p>
+        </div>
+      </footer>
+    </div> <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="http://cdn.bootcss.com/jquery/1.10.2/jquery.min.js"></script>
+  </body>
+</html>
